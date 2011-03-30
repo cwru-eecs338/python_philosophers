@@ -73,9 +73,11 @@ class PhilosopherTable(object):
             self.conditions[i].notify()
 
     def left(self, i):
+        """Index to the left of i"""
         return (i + self.seats - 1) % self.seats
 
     def right(self, i):
+        """Index to the right of i"""
         return (i + 1) % self.seats
 
     def set_state(self, i, state):
@@ -122,6 +124,7 @@ class Philosopher(object):
         self.thread = Thread(target=self.run)
 
     def run(self):
+        """Called when the thread is started"""
         while True:
             # Access 'interrupted' with mutual exclusion
             with self.ilock as l:
@@ -136,9 +139,18 @@ class Philosopher(object):
     def eat(self):   random_sleep(0.25)
 
     def start(self):
+        """
+        Starts the thread associated
+        with this philosopher
+        """
         self.thread.start()
 
     def stop(self):
+        """
+        Interrupts the thread associated
+        with this philosopher and then
+        joints it with the calling thread
+        """
         # Access 'interrupted' with mutual exclusion
         with self.ilock as l:
             self.interrupted = True

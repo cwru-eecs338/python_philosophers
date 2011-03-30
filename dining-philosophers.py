@@ -15,7 +15,7 @@ def main(args):
     except: pass
 
     # Set table
-    # (Spam and rice for dinner, of course)
+    # (Spam and rice for dinner)
     table = PhilosopherTable(seats)
 
     # Create list of philosophers

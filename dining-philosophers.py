@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from philosophers import PhilosopherTable
+from philosophers import PhilosopherTable, Philosopher
+from time import sleep
 
 def main(args):
     # Default values
@@ -13,9 +14,25 @@ def main(args):
         duration = float(args.pop(0))
     except: pass
 
+    # Set table
+    # (Spam and rice for dinner, of course)
     table = PhilosopherTable(seats)
-    table.pickup(0)
-    table.putdown(0)
+
+    # Create list of philosophers
+    # (Useful Python syntax called a
+    #  'list comprehension')
+    philosophers = [Philosopher(table, p)
+                    for p in xrange(seats)]
+
+    # Start philosophers
+    for p in philosophers:
+        p.start()
+
+    sleep(duration)
+
+    # Interrupt and join
+    for p in philosophers:
+        p.stop()
 
 if __name__ == '__main__':
     from sys import argv

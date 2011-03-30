@@ -4,7 +4,7 @@ philosophers, including the threads, and the table,
 which acts as a monitor for synchronization.
 """
 
-from threading import RLock, Condition
+from threading import Thread, RLock, Condition
 
 class State(object):
     """
@@ -16,8 +16,8 @@ class State(object):
     def __str__(self):
         return self.string
 
-HUNGRY   = State('H')
 THINKING = State('T')
+HUNGRY   = State('H')
 EATING   = State('E')
 
 class PhilosopherTable(object):
@@ -79,9 +79,18 @@ class PhilosopherTable(object):
         return (i + 1) % self.seats
 
     def set_state(self, i, state):
+        """Sets, checks, and prints new state"""
         self.states[i] = state
-        # TODO Check
+        self.sanity_check()
         print self
+
+    def sanity_check(self):
+        """Make sure we're not in an illegal state"""
+        for i in xrange(self.seats):
+            ieat = self.states[i] == EATING
+            leat = self.states[self.left(i)] == EATING
+            reat = self.states[self.right(i)] == EATING
+            assert(not(ieat and (leat or reat)))
 
     def __str__(self):
         strs = []
@@ -96,3 +105,50 @@ class PhilosopherTable(object):
                     strs += [' %(pstate)s |' % locals()]
 
         return ''.join(strs)
+
+class Philosopher(object):
+    """
+    The actual philosopher object, which has its own
+    thread and interacts with a given table
+    """
+    def __init__(self, table, seat):
+        self.table = table
+        self.seat = seat
+
+        # Lock and variable for interrupt
+        self.ilock = RLock()
+        self.interrupted = False
+
+        self.thread = Thread(target=self.run)
+
+    def run(self):
+        while True:
+            # Access 'interrupted' with mutual exclusion
+            with self.ilock as l:
+                if self.interrupted: break
+
+            self.think()
+            self.table.pickup(self.seat)
+            self.eat()
+            self.table.putdown(self.seat)
+
+    def think(self): random_sleep(0.50)
+    def eat(self):   random_sleep(0.25)
+
+    def start(self):
+        self.thread.start()
+
+    def stop(self):
+        # Access 'interrupted' with mutual exclusion
+        with self.ilock as l:
+            self.interrupted = True
+        self.thread.join()
+
+def random_sleep(max_time):
+    """
+    Sleeps for random time,
+    up to max time in seconds
+    """
+    from time import sleep
+    from random import random
+    sleep(max_time*random())

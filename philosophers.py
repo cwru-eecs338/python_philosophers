@@ -53,12 +53,46 @@ class PhilosopherTable(object):
 
     @synchronized
     def pickup(self, i):
-        pass
+        self.set_state(i, HUNGRY)
+        self.test(i)
+        if self.states[i] != EATING:
+            self.conditions[i].wait()
 
     @synchronized
     def putdown(self, i):
-        pass
+        self.set_state(i, THINKING)
+        self.test(self.right(i))
+        self.test(self.left(i))
 
     @synchronized
-    def _test(self, i):
-        pass
+    def test(self, i):
+        if (self.states[self.left(i)] != EATING
+            and self.states[self.right(i)] != EATING
+            and self.states[i] == HUNGRY):
+            self.set_state(i, EATING)
+            self.conditions[i].notify()
+
+    def left(self, i):
+        return (i + self.seats - 1) % self.seats
+
+    def right(self, i):
+        return (i + 1) % self.seats
+
+    def set_state(self, i, state):
+        self.states[i] = state
+        # TODO Check
+        print self
+
+    def __str__(self):
+        strs = []
+        for p in xrange(self.seats):
+            pstate = self.states[p]
+            if pstate == EATING:
+                strs += ['|%(pstate)s| ' % locals()]
+            else:
+                if self.states[self.right(p)] == EATING:
+                    strs += [' %(pstate)s  ' % locals()]
+                else:
+                    strs += [' %(pstate)s |' % locals()]
+
+        return ''.join(strs)

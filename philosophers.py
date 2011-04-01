@@ -44,11 +44,12 @@ class PhilosopherTable(object):
         monitor instance.
         """
         def wrapper(self, *args, **kw):
-            self.monitor_lock.acquire()
-            try:
+            # The 'with' syntax automagically
+            # takes care of acquiring and
+            # releasing the lock in a try-finally
+            # around the specified block
+            with self.monitor_lock:
                 return f(self, *args, **kw)
-            finally:
-                self.monitor_lock.release()
         return wrapper
 
     @synchronized
@@ -127,7 +128,7 @@ class Philosopher(object):
         """Called when the thread is started"""
         while True:
             # Access 'interrupted' with mutual exclusion
-            with self.ilock as l:
+            with self.ilock:
                 if self.interrupted: break
 
             self.think()
@@ -152,7 +153,7 @@ class Philosopher(object):
         joints it with the calling thread
         """
         # Access 'interrupted' with mutual exclusion
-        with self.ilock as l:
+        with self.ilock:
             self.interrupted = True
         self.thread.join()
 

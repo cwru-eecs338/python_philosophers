@@ -30,9 +30,13 @@ def main(args):
 
     sleep(duration)
 
-    # Interrupt and join
+    # Interrupt
     for p in philosophers:
-        p.stop()
+        p.interrupt()
+
+    # Join
+    for p in philosophers:
+        p.join()
 
 if __name__ == '__main__':
     from sys import argv

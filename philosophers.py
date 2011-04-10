@@ -100,21 +100,22 @@ class PhilosopherTable(object):
         for p in xrange(self.seats):
             pstate = self.states[p]
             if pstate == EATING:
-                strs += ['|%(pstate)s| ' % locals()]
+                strs += ['|%s| ' % pstate]
             else:
                 if self.states[self.right(p)] == EATING:
-                    strs += [' %(pstate)s  ' % locals()]
+                    strs += [' %s  ' % pstate]
                 else:
-                    strs += [' %(pstate)s |' % locals()]
+                    strs += [' %s |' % pstate]
 
         return ''.join(strs)
 
-class Philosopher(object):
+class Philosopher(Thread):
     """
-    The actual philosopher object, which has its own
+    The actual philosopher object, which is its own
     thread and interacts with a given table
     """
     def __init__(self, table, seat):
+        super(Philosopher, self).__init__()
         self.table = table
         self.seat = seat
 
@@ -122,8 +123,7 @@ class Philosopher(object):
         self.ilock = RLock()
         self.interrupted = False
 
-        self.thread = Thread(target=self.run)
-
+    # Override 'run()' method
     def run(self):
         """Called when the thread is started"""
         while True:
@@ -139,23 +139,14 @@ class Philosopher(object):
     def think(self): random_sleep(0.50)
     def eat(self):   random_sleep(0.25)
 
-    def start(self):
-        """
-        Starts the thread associated
-        with this philosopher
-        """
-        self.thread.start()
-
-    def stop(self):
+    def interrupt(self):
         """
         Interrupts the thread associated
-        with this philosopher and then
-        joints it with the calling thread
+        with this philosopher
         """
         # Access 'interrupted' with mutual exclusion
         with self.ilock:
             self.interrupted = True
-        self.thread.join()
 
 def random_sleep(max_time):
     """
